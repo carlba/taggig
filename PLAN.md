@@ -108,6 +108,24 @@ Target host: Cloudflare Workers with static assets (free tier, global CDN). Clou
 
 Fallback: classic Cloudflare Pages (Astro preset, output directory `dist`, no deploy command) works too if the Workers flow causes problems.
 
+## Phase 6: Private Posts
+
+Private posts live in `content/private/` (the `private` collection) and are served under `/private/`. The site code is done: they are left out of the home page, tags, RSS, sitemap, search index and og-image generation, and the pages carry `noindex, nofollow`. The access control itself is Cloudflare Access and must be set up in the dashboard.
+
+1. Make sure the git repo is private, since the post sources are in it.
+
+2. In the Cloudflare dashboard, go to Zero Trust, then Access, then Applications, then Add an application, then Self-hosted.
+
+3. Add the custom domain with path `private/*` as the application destination.
+
+4. Add the `*.workers.dev` hostname with path `private/*` too, or disable the workers.dev route for the Worker. Otherwise the private posts are reachable without login on that hostname.
+
+5. Add an Allow policy for your email address (one-time PIN login is the simplest method).
+
+6. Test in a private browser window: `/private/` and `/private/private/` must ask for login, and the public pages must stay open.
+
+Note: private pages are still built into `dist/` and served by Cloudflare with Access as the gate. This is fine for casual privacy but is not encryption.
+
 ## Open Questions
 
 - What is the production domain?

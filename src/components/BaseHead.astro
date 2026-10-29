@@ -6,7 +6,7 @@ import "@/styles/global.css";
 
 type Props = SiteMeta;
 
-const { articleDate, description, ogImage, title } = Astro.props;
+const { articleDate, description, noindex, ogImage, title } = Astro.props;
 
 const titleSeparator = "•";
 const siteTitle = `${title} ${titleSeparator} ${siteConfig.title}`;
@@ -31,6 +31,8 @@ const socialImageURL = new URL(ogImage ? ogImage : "/social-card.png", Astro.url
 		</>
 	)
 }
+
+{noindex && <meta content="noindex, nofollow" name="robots" />}
 
 {/* Canonical URL */}
 <link href={canonicalURL} rel="canonical" />

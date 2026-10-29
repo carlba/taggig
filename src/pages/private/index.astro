@@ -1,0 +1,32 @@
+---
+import { getCollection } from "astro:content";
+import FormattedDate from "@/components/FormattedDate.astro";
+import PageLayout from "@/layouts/Base.astro";
+import { collectionDateSort } from "@/utils/date";
+
+const posts = (await getCollection("private")).sort(collectionDateSort);
+
+const meta = {
+	description: "Private posts",
+	noindex: true,
+	title: "Private",
+};
+---
+
+<PageLayout meta={meta}>
+	<h1 class="title mb-6">Private</h1>
+	<ul class="space-y-4 text-start">
+		{
+			posts.map((p) => (
+				<li class="grid gap-1 sm:grid-cols-[auto_1fr]">
+					<FormattedDate class="text-muted min-w-30 font-semibold" date={p.data.publishDate} />
+					<div>
+						<a class="cactus-link" href={`/private/${p.id}/`}>
+							{p.data.title}
+						</a>
+					</div>
+				</li>
+			))
+		}
+	</ul>
+</PageLayout>

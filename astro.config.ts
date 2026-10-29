@@ -28,7 +28,7 @@ export default defineConfig({
 	integrations: [
 		expressiveCode(expressiveCodeOptions),
 		icon(),
-		sitemap(),
+		sitemap({ filter: (page) => !new URL(page).pathname.startsWith("/private/") }),
 		mdx(),
 		robotsTxt(),
 		webmanifest({
