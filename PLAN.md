@@ -70,31 +70,43 @@ Plan for setting up the [Astro Cactus](https://github.com/chrismwilliams/astro-t
 
 ## Phase 5: Deploy
 
-Target host: Cloudflare Pages (static site, free tier, global CDN).
+Target host: Cloudflare Workers with static assets (free tier, global CDN). Cloudflare's current flow for static sites; the older Pages product is in maintenance mode.
 
-1. Push the repo to a git remote (GitHub or GitLab) so Cloudflare can connect to it.
+1. Add a `wrangler.jsonc` to the repo root:
 
-2. In the Cloudflare dashboard, go to Workers & Pages, then Create, then Pages, then Connect to Git, and select the repo.
+   ```jsonc
+   {
+     "name": "taggig",
+     "compatibility_date": "2026-10-29",
+     "assets": { "directory": "./dist" }
+   }
+   ```
 
-3. Configure the build:
+   The `name` must match the Worker name chosen in the dashboard.
 
-   - Framework preset: Astro.
+2. Push the repo to a git remote (GitHub or GitLab) so Cloudflare can connect to it. Create the remote repo empty (no README or .gitignore).
+
+3. In the Cloudflare dashboard, go to Workers & Pages, then Create application, then import the existing Git repository (not a template).
+
+4. Configure the build:
 
    - Build command: `pnpm build`.
 
-   - Build output directory: `dist`.
+   - Deploy command: `npx wrangler deploy` (the default).
+
+   - Preview command: `npx wrangler preview` is the default; leave it unless branch previews misbehave.
 
    - Environment variable: `NODE_VERSION` set to the Node version used locally, if the default build image differs.
 
-4. Deploy, then open the generated `*.pages.dev` URL and check the site.
+5. Deploy, then open the generated `*.workers.dev` URL and check the site.
 
-5. Add the custom domain under the project's Custom domains tab. If the domain's DNS is not on Cloudflare, add the CNAME record Cloudflare shows. Confirm HTTPS is active.
+6. Add the custom domain under the Worker's Settings, then Domains & Routes. If the domain's DNS is not on Cloudflare, add the record Cloudflare shows. Confirm HTTPS is active.
 
-6. Set `site` in `astro.config.ts` to the final custom domain, commit, and let it redeploy so the sitemap, RSS and canonical links are correct.
+7. Set `site` in `astro.config.ts` to the final custom domain, commit, and let it redeploy so the sitemap, RSS and canonical links are correct.
 
-7. Confirm that pushes to the production branch deploy automatically and that other branches get preview URLs.
+8. Confirm that pushes to the production branch deploy automatically and that other branches get preview URLs.
 
-Alternative: deploy with Wrangler (`pnpm dlx wrangler pages deploy dist`) if we prefer not to connect git.
+Fallback: classic Cloudflare Pages (Astro preset, output directory `dist`, no deploy command) works too if the Workers flow causes problems.
 
 ## Open Questions
 
