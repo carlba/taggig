@@ -70,19 +70,33 @@ Plan for setting up the [Astro Cactus](https://github.com/chrismwilliams/astro-t
 
 ## Phase 5: Deploy
 
-Pick one host (open question below), then:
+Target host: Cloudflare Pages (static site, free tier, global CDN).
 
-1. Connect the repo to the host.
+1. Push the repo to a git remote (GitHub or GitLab) so Cloudflare can connect to it.
 
-2. Set the build command to `pnpm build` and the output directory to `dist`.
+2. In the Cloudflare dashboard, go to Workers & Pages, then Create, then Pages, then Connect to Git, and select the repo.
 
-3. Set the production URL to match `site` in `astro.config.ts`.
+3. Configure the build:
 
-4. Add the custom domain and confirm HTTPS.
+   - Framework preset: Astro.
+
+   - Build command: `pnpm build`.
+
+   - Build output directory: `dist`.
+
+   - Environment variable: `NODE_VERSION` set to the Node version used locally, if the default build image differs.
+
+4. Deploy, then open the generated `*.pages.dev` URL and check the site.
+
+5. Add the custom domain under the project's Custom domains tab. If the domain's DNS is not on Cloudflare, add the CNAME record Cloudflare shows. Confirm HTTPS is active.
+
+6. Set `site` in `astro.config.ts` to the final custom domain, commit, and let it redeploy so the sitemap, RSS and canonical links are correct.
+
+7. Confirm that pushes to the production branch deploy automatically and that other branches get preview URLs.
+
+Alternative: deploy with Wrangler (`pnpm dlx wrangler pages deploy dist`) if we prefer not to connect git.
 
 ## Open Questions
-
-- Where do we want to host (Netlify, Vercel, Cloudflare Pages, GitHub Pages)?
 
 - What is the production domain?
 
