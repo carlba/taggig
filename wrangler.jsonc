@@ -1,5 +1,8 @@
    {
      "name": "taggig",
      "compatibility_date": "2026-10-29",
-     "assets": { "directory": "./dist" }
+     "assets": { "directory": "./dist" },
+     "vars": {
+      "PNPM_VERSION": "11.25.0"
+     },
    }

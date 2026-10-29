@@ -53,5 +53,6 @@
 		"prettier-plugin-tailwindcss": "^0.8.1",
 		"reading-time": "^1.5.0",
 		"typescript": "^6.0.3"
-	}
+	},
+	"packageManager": "pnpm@11.25.0"
 }
