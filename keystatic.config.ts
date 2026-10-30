@@ -1,4 +1,6 @@
 import { collection, config, fields } from "@keystatic/core";
+import { block } from "@keystatic/core/content-components";
+import GalleryPreview from "@/keystatic/GalleryPreview";
 
 export default config({
 	storage: {
@@ -29,6 +31,27 @@ export default config({
 					label: "Content",
 					// Astro resolves image links relative to the post file
 					options: { image: { directory: "content/posts/images", publicPath: "./images/" } },
+					components: {
+						// rendered by src/components/Gallery.astro (passed to <Content components> in the post page)
+						Gallery: block({
+							label: "Gallery",
+							ContentView: GalleryPreview,
+							schema: {
+								images: fields.array(
+									fields.object({
+										src: fields.image({
+											label: "Image",
+											directory: "content/posts/images",
+											publicPath: "./images/",
+											validation: { isRequired: true },
+										}),
+										alt: fields.text({ label: "Alt text" }),
+									}),
+									{ label: "Images", itemLabel: (props) => props.fields.alt.value || "Image" },
+								),
+							},
+						}),
+					},
 				}),
 			},
 		}),

@@ -1,0 +1,46 @@
+---
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
+
+interface Props {
+	images: { src: string; alt?: string }[];
+}
+
+const { images } = Astro.props;
+
+// Post images live next to the posts and are referenced by relative path, e.g. "./images/<slug>/a.jpg".
+const available = import.meta.glob<ImageMetadata>(
+	"/content/posts/images/**/*.{jpg,jpeg,png,webp,avif,gif}",
+	{ eager: true, import: "default" },
+);
+
+function resolve(src: string) {
+	const path = src.replace(/^\.?\//, "");
+	const key = Object.keys(available).find((k) => k.endsWith(`/${path}`));
+	if (!key) console.warn(`Gallery: image not found for "${src}"`);
+	return key ? available[key] : undefined;
+}
+
+const items = images.flatMap(({ src, alt }) => {
+	const image = resolve(src);
+	return image ? [{ image, alt: alt ?? "" }] : [];
+});
+---
+
+<ul class="not-prose my-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
+	{
+		items.map(({ image, alt }) => (
+			<li class="overflow-hidden rounded-md">
+				<a href={image.src} target="_blank" rel="noopener">
+					<Image
+						alt={alt}
+						class="aspect-square h-full w-full object-cover transition-opacity hover:opacity-80"
+						height={400}
+						src={image}
+						width={400}
+					/>
+				</a>
+			</li>
+		))
+	}
+</ul>
