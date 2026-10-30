@@ -11,10 +11,12 @@ export default config({
 			slugField: "title",
 			path: "content/posts/*",
 			format: { contentField: "content" },
+			// editor in the main area, metadata fields in a side panel
+			entryLayout: "content",
 			// Keep in sync with the `post` schema in src/content.config.ts
 			schema: {
 				title: fields.slug({ name: { label: "Title", validation: { length: { max: 60 } } } }),
-				description: fields.text({ label: "Description", multiline: true }),
+				description: fields.text({ label: "Description" }),
 				publishDate: fields.date({ label: "Publish date", validation: { isRequired: true } }),
 				updatedDate: fields.date({ label: "Updated date" }),
 				tags: fields.array(fields.text({ label: "Tag" }), {
