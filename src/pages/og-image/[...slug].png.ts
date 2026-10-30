@@ -38,10 +38,8 @@ export async function GET(context: APIContext) {
 	let pngBuffer = readCache(title, pubDate);
 	if (!pngBuffer) {
 		console.info(`Generating new OG image for: ${title}`);
-		const postDate = getFormattedDate(pubDate, {
-			month: "long",
-			weekday: "long",
-		});
+		// en-GB, so the long date isn't printed in Swedish
+		const postDate = getFormattedDate(pubDate, { month: "long", weekday: "long" }, "en-GB");
 		const svg = await satori(ogMarkup(title, postDate) as unknown as ReactNode, ogOptions);
 		pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
 		writeToCache(title, pubDate, pngBuffer);

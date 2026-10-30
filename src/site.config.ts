@@ -23,9 +23,11 @@ export const siteConfig: SiteConfig = {
 	showLogo: true,
 	// Date.prototype.toLocaleDateString() parameters, found in src/utils/date.ts.
 	date: {
+		// sv-SE prints numeric dates as ISO 8601 (2026-10-30)
+		locale: "sv-SE",
 		options: {
-			day: "numeric",
-			month: "short",
+			day: "2-digit",
+			month: "2-digit",
 			year: "numeric",
 		},
 	},
