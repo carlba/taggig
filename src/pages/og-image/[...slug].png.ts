@@ -1,4 +1,5 @@
 import type { APIContext, InferGetStaticPropsType } from "astro";
+import type { ReactNode } from "react";
 import satori, { type SatoriOptions } from "satori";
 import sharp from "sharp";
 import RobotoMonoBold from "@/assets/roboto-mono-700.ttf";
@@ -41,7 +42,7 @@ export async function GET(context: APIContext) {
 			month: "long",
 			weekday: "long",
 		});
-		const svg = await satori(ogMarkup(title, postDate), ogOptions);
+		const svg = await satori(ogMarkup(title, postDate) as unknown as ReactNode, ogOptions);
 		pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
 		writeToCache(title, pubDate, pngBuffer);
 	}

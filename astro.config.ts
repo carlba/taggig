@@ -1,7 +1,10 @@
 import fs from "node:fs";
+import markdoc from "@astrojs/markdoc";
 import { satteri, satteriHeadingIdsPlugin } from "@astrojs/markdown-satteri";
 import mdx from "@astrojs/mdx";
+import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
+import keystatic from "@keystatic/astro";
 import tailwind from "@tailwindcss/vite";
 import { defineConfig, envField } from "astro/config";
 import expressiveCode from "astro-expressive-code";
@@ -64,6 +67,10 @@ export default defineConfig({
 				insertManifestLink: false,
 			},
 		}),
+		react(),
+		markdoc(),
+		// Keystatic admin UI is local-only, keep it out of the static production build
+		...(process.argv.includes("dev") ? [keystatic()] : []),
 	],
 	markdown: {
 		processor: satteri({
