@@ -126,6 +126,26 @@ Private posts live in `content/private/` (the `private` collection) and are serv
 
 Note: private pages are still built into `dist/` and served by Cloudflare with Access as the gate. This is fine for casual privacy but is not encryption.
 
+## Phase 7: Keystatic on Cloudflare
+
+Code is done: the Cloudflare adapter (prerendering in Node, since the OG image route needs `sharp`), Keystatic always enabled, and GitHub storage in production (`carlba/taggig`) with local storage in dev. Public and private pages are still prerendered static files in `dist/client`, and only the Keystatic admin and its API run as a Worker. Every save in the admin commits to GitHub, which triggers a rebuild.
+
+1. Create a GitHub App for Keystatic. In dev, temporarily set `storage` to `{ kind: "github", repo: "carlba/taggig" }` and open `/keystatic`: it offers to create the app and writes the keys to `.env`. Set the app's callback URL to `https://<your-domain>/api/keystatic/github/oauth/callback`, and install the app on the repo.
+
+2. Add these in Cloudflare (Worker settings, then Variables and Secrets): `KEYSTATIC_GITHUB_CLIENT_ID`, `KEYSTATIC_GITHUB_CLIENT_SECRET` (secret), `KEYSTATIC_SECRET` (secret) and `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG`. The `PUBLIC_` one must also exist at build time.
+
+3. In Cloudflare Access, protect `/keystatic/*` and `/api/keystatic/*` with the same policy as `/private/*`.
+
+4. Check `/keystatic` on the deployed site: it must ask for the Access login first, then the GitHub login.
+
+5. Make a test edit in Keystatic and confirm it commits and the site redeploys.
+
+Notes:
+
+- The build output is now `dist/client` (static) and `dist/server` (Worker). `wrangler deploy` finds it through the generated config, and pagefind runs against `dist/client`.
+
+- `pnpm-workspace.yaml` allows the `workerd` install script.
+
 ## Open Questions
 
 - What is the production domain?

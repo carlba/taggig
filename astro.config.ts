@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import cloudflare from "@astrojs/cloudflare";
 import markdoc from "@astrojs/markdoc";
 import { satteri, satteriHeadingIdsPlugin } from "@astrojs/markdown-satteri";
 import mdx from "@astrojs/mdx";
@@ -25,6 +26,8 @@ import { expressiveCodeOptions, siteConfig } from "./src/site.config";
 // https://astro.build/config
 export default defineConfig({
 	site: siteConfig.url,
+	// Needed for the server-rendered Keystatic admin routes, all other pages are prerendered
+	adapter: cloudflare({ prerenderEnvironment: "node" }),
 	image: {
 		domains: ["webmention.io"],
 	},
@@ -69,8 +72,7 @@ export default defineConfig({
 		}),
 		react(),
 		markdoc(),
-		// Keystatic admin UI is local-only, keep it out of the static production build
-		...(process.argv.includes("dev") ? [keystatic()] : []),
+		keystatic(),
 	],
 	markdown: {
 		processor: satteri({
@@ -90,8 +92,7 @@ export default defineConfig({
 		}),
 	},
 	vite: {
-		plugins: [tailwind(), rawFonts([".ttf", ".woff"])],
-	},
+		plugins: [tailwind(), rawFonts([".ttf", ".woff"])],	},
 	env: {
 		schema: {
 			WEBMENTION_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),

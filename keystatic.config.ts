@@ -3,9 +3,8 @@ import { block } from "@keystatic/core/content-components";
 import GalleryPreview from "@/keystatic/GalleryPreview";
 
 export default config({
-	storage: {
-		kind: "local",
-	},
+	// Edits are commits to GitHub in production (Cloudflare has no writable filesystem)
+	storage: { kind: "github", repo: "carlba/taggig" },
 
 	collections: {
 		posts: collection({
