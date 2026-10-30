@@ -1,0 +1,61 @@
+<font-toggle class="ms-2 sm:ms-4">
+	<button class="hover:text-accent relative h-9 w-9 cursor-pointer p-2" type="button">
+		<span class="sr-only">Monospace Font</span>
+		<svg
+			aria-hidden="true"
+			class="absolute inset-s-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 scale-100 opacity-100 transition-all [[data-font=sans]_&]:scale-0 [[data-font=sans]_&]:opacity-0"
+			fill="none"
+			focusable="false"
+			stroke="currentColor"
+			stroke-width="1.5"
+			viewBox="0 0 24 24"
+			xmlns="http://www.w3.org/2000/svg"
+		>
+			<path d="M8 8L3 12L8 16" stroke-linecap="round" stroke-linejoin="round"></path>
+			<path d="M16 8L21 12L16 16" stroke-linecap="round" stroke-linejoin="round"></path>
+			<path d="M14 6L10 18" stroke-linecap="round" stroke-linejoin="round"></path>
+		</svg>
+		<svg
+			aria-hidden="true"
+			class="absolute inset-s-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 scale-0 opacity-0 transition-all [[data-font=sans]_&]:scale-100 [[data-font=sans]_&]:opacity-100"
+			fill="none"
+			focusable="false"
+			stroke="currentColor"
+			stroke-width="1.5"
+			viewBox="0 0 24 24"
+			xmlns="http://www.w3.org/2000/svg"
+		>
+			<path d="M4 19L9 5L14 19" stroke-linecap="round" stroke-linejoin="round"></path>
+			<path d="M5.8 14H12.2" stroke-linecap="round" stroke-linejoin="round"></path>
+			<path d="M20 19V12.5A2.5 2.5 0 0 0 17.5 10H17" stroke-linecap="round" stroke-linejoin="round"
+			></path>
+		</svg>
+	</button>
+</font-toggle>
+
+<script>
+	class FontToggle extends HTMLElement {
+		constructor() {
+			super();
+			const button = this.querySelector<HTMLButtonElement>("button");
+
+			if (button) {
+				const isMono = () => document.documentElement.getAttribute("data-font") !== "sans";
+
+				button.setAttribute("role", "switch");
+				button.setAttribute("aria-checked", String(isMono()));
+
+				button.addEventListener("click", () => {
+					document.dispatchEvent(
+						new CustomEvent("font-change", { detail: { font: isMono() ? "sans" : "mono" } }),
+					);
+					button.setAttribute("aria-checked", String(isMono()));
+				});
+			} else {
+				console.warn("Font Toggle: No button found");
+			}
+		}
+	}
+
+	customElements.define("font-toggle", FontToggle);
+</script>

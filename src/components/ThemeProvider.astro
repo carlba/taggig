@@ -28,14 +28,33 @@
 		}
 	}
 
+	function setFont(newFont) {
+		if (newFont !== "mono" && newFont !== "sans") return;
+		document.documentElement.setAttribute("data-font", newFont);
+		if (typeof localStorage !== "undefined") {
+			localStorage.setItem("font", newFont);
+		}
+	}
+
+	function getFontPref() {
+		return (typeof localStorage !== "undefined" && localStorage.getItem("font")) || "sans";
+	}
+
 	// initial setup
 	setTheme(getUserPref());
+	setFont(getFontPref());
 
 	// listen for pageshow event, browser restored page from bfcache
 	window.addEventListener("pageshow", (e) => {
 		if (e.persisted) {
 			setTheme(getUserPref());
+			setFont(getFontPref());
 		}
+	});
+
+	// listen for font-change custom event, fired in src/components/FontToggle.astro
+	document.addEventListener("font-change", (e) => {
+		setFont(e.detail.font);
 	});
 
 	// listen for theme-change custom event, fired in src/components/ThemeToggle.astro

@@ -139,3 +139,16 @@
 	--tw-prose-quotes: var(--color-quote);
 	--tw-prose-th-borders: #666;
 }
+
+/* mono font mode, toggled by src/components/FontToggle.astro (sans is the default via font-sans on body) */
+[data-font="mono"] body {
+	font-family: var(--font-mono);
+}
+
+/* no "#" heading markers in sans mode (prose-headings:before in BlogPost.astro, TOCHeading.astro) */
+[data-font="sans"] .prose :is(h1, h2, h3, h4, h5, h6)::before {
+	content: none;
+}
+[data-font="sans"] .toc-marker {
+	display: none;
+}
