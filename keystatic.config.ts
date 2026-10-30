@@ -25,7 +25,11 @@ export default config({
 				}),
 				draft: fields.checkbox({ label: "Draft", defaultValue: false }),
 				pinned: fields.checkbox({ label: "Pinned", defaultValue: false }),
-				content: fields.mdx({ label: "Content" }),
+				content: fields.mdx({
+					label: "Content",
+					// Astro resolves image links relative to the post file
+					options: { image: { directory: "content/posts/images", publicPath: "./images/" } },
+				}),
 			},
 		}),
 	},
