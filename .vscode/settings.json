@@ -7,7 +7,7 @@
 		"editor.defaultFormatter": "biomejs.biome"
 	},
 	"[astro]": { "editor.defaultFormatter": "astro-build.astro-vscode" },
-	"[markdown]": { "editor.wordWrap": "on" },
+	"[markdown]": { "editor.wordWrap": "wordWrapColumn", "editor.wordWrapColumn": 100 },
 	"editor.formatOnSave": true,
 	"editor.codeActionsOnSave": {
 		"source.fixAll.biome": "explicit",

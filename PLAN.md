@@ -76,9 +76,9 @@ Target host: Cloudflare Workers with static assets (free tier, global CDN). Clou
 
    ```jsonc
    {
-     "name": "taggig",
-     "compatibility_date": "2026-10-29",
-     "assets": { "directory": "./dist" }
+   	"name": "taggig",
+   	"compatibility_date": "2026-10-29",
+   	"assets": { "directory": "./dist" },
    }
    ```
 
@@ -116,29 +116,61 @@ Private posts live in `content/private/` (the `private` collection) and are serv
 
 2. In the Cloudflare dashboard, go to Zero Trust, then Access, then Applications, then Add an application, then Self-hosted.
 
-3. Add the custom domain with path `private/*` as the application destination.
+3. Add the custom domain (`taggig.dahleo.se`) with the paths as destinations. Add each path twice: with the wildcard and as an exact path, because `private/*` does not match `/private` without the trailing slash. See [Phase 8](#phase-8-cloudflare-access-setup-as-done) for the exact list.
 
-4. Add the `*.workers.dev` hostname with path `private/*` too, or disable the workers.dev route for the Worker. Otherwise the private posts are reachable without login on that hostname.
+4. Disable the workers.dev route and preview URLs for the Worker (Settings, then Domains & Routes). Do not use the "Add Workers" destination: it protects the whole Worker including the custom domain, which puts the entire public site behind the login.
 
 5. Add an Allow policy for your email address (one-time PIN login is the simplest method).
 
-6. Test in a private browser window: `/private/` and `/private/private/` must ask for login, and the public pages must stay open.
+6. Test in a private browser window: `/private/`, `/private` and `/private/private/` must ask for login, and the public pages must stay open.
 
 Note: private pages are still built into `dist/` and served by Cloudflare with Access as the gate. This is fine for casual privacy but is not encryption.
 
 ## Phase 7: Keystatic on Cloudflare
 
-Code is done: the Cloudflare adapter (prerendering in Node, since the OG image route needs `sharp`), Keystatic always enabled, and GitHub storage in production (`carlba/taggig`) with local storage in dev. Public and private pages are still prerendered static files in `dist/client`, and only the Keystatic admin and its API run as a Worker. Every save in the admin commits to GitHub, which triggers a rebuild.
+Code is done: the Cloudflare adapter (prerendering in Node, since the OG image route needs `sharp`), Keystatic always enabled, and GitHub storage (`carlba/taggig`), see "Keystatic Configuration" below. Public and private pages are still prerendered static files in `dist/client`, and only the Keystatic admin and its API run as a Worker. Every save in the admin commits to GitHub, which triggers a rebuild.
 
-1. Create a GitHub App for Keystatic. In dev, temporarily set `storage` to `{ kind: "github", repo: "carlba/taggig" }` and open `/keystatic`: it offers to create the app and writes the keys to `.env`. Set the app's callback URL to `https://<your-domain>/api/keystatic/github/oauth/callback`, and install the app on the repo.
+1. Create the GitHub App by hand (the dev flow failed, see the notes below). Go to https://github.com/settings/apps/new and use:
 
-2. Add these in Cloudflare (Worker settings, then Variables and Secrets): `KEYSTATIC_GITHUB_CLIENT_ID`, `KEYSTATIC_GITHUB_CLIENT_SECRET` (secret), `KEYSTATIC_SECRET` (secret) and `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG`. The `PUBLIC_` one must also exist at build time.
+   - Name: `taggig-cms`. GitHub reserves the names of deleted apps, so `taggig-keystatic` could not be reused after it was deleted by mistake.
 
-3. In Cloudflare Access, protect `/keystatic/*` and `/api/keystatic/*` with the same policy as `/private/*`.
+   - Homepage URL: `https://github.com/carlba/taggig`.
 
-4. Check `/keystatic` on the deployed site: it must ask for the Access login first, then the GitHub login.
+   - Callback URLs: `https://taggig.dahleo.se/api/keystatic/github/oauth/callback` and `http://127.0.0.1:4321/api/keystatic/github/oauth/callback`.
 
-5. Make a test edit in Keystatic and confirm it commits and the site redeploys.
+   - Request user authorization (OAuth) during installation: on.
+
+   - Webhook: off.
+
+   - Repository permissions: Contents, Read and write.
+
+   - Where can it be installed: only on this account.
+
+   Then install it on `carlba/taggig` (the app's Install App page). The Client ID is on the app's General page (`Iv23liFb9VmKd9mTqzmJ`).
+
+2. Generate a client secret on the app's **Credentials** page (https://github.com/settings/apps/taggig-cms/client_secrets), not on General. It is shown only once.
+
+3. Add the variables in Cloudflare. There are two separate "Variables and secrets" sections on the Worker's Settings page, and each variable goes in one place only:
+
+   - **Runtime** (the top section, "Variables and secrets"):
+
+     - `KEYSTATIC_GITHUB_CLIENT_ID`: type Text, the Client ID.
+
+     - `KEYSTATIC_GITHUB_CLIENT_SECRET`: type **Secret**, the client secret from step 2.
+
+     - `KEYSTATIC_SECRET`: type **Secret**, a long random string such as the output of `openssl rand -hex 32`.
+
+   - **Build** (Settings, then Build, then "Variables and secrets"):
+
+     - `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG`: `taggig-cms`. It is read at build time, so trigger a new build after changing it.
+
+   Dashboard runtime variables of type Text can be overwritten by a deploy when `wrangler.jsonc` does not list them. Secrets persist. Either list the non-secret values in `wrangler.jsonc` `vars` or re-check them after a deploy.
+
+4. Protect the admin with Cloudflare Access, see [Phase 8](#phase-8-cloudflare-access-setup-as-done).
+
+5. Check `/keystatic` on the deployed site: it must ask for the Access login first, then the GitHub login.
+
+6. Make a test edit in Keystatic and confirm it commits and the site redeploys.
 
 Notes:
 
@@ -146,11 +178,51 @@ Notes:
 
 - `pnpm-workspace.yaml` allows the `workerd` install script.
 
+- Cloudflare only allows variables on a Worker once it has been deployed with the adapter build. Before that it says "Variables cannot be added to a Worker that only has static assets".
+
+- In dev, the Keystatic API routes (`/api/keystatic/*`) fail under the Cloudflare adapter with "exports is not defined" (the workerd runner cannot load the CommonJS Keystatic packages). Adding the packages to `vite.ssr.noExternal` did not help and was reverted. This is unresolved, and it is why the GitHub App is created by hand. The admin UI itself works with `local` storage in dev.
+
+## Phase 8: Cloudflare Access Setup (as done)
+
+What was set up in the dashboard, in order, for `taggig.dahleo.se`. Zero Trust is on the Free plan.
+
+1. Zero Trust, then Access controls, then Applications, then Add an application, then Self-hosted and private.
+
+2. Public hostnames, all on subdomain `taggig`, domain `dahleo.se`. Add one row per path:
+
+   - `keystatic/*`
+
+   - `keystatic`
+
+   - `api/keystatic/*`
+
+   - `private/*`
+
+   - `private`
+
+   The exact paths (`keystatic`, `private`) are needed because `keystatic/*` does not match `/keystatic` without the trailing slash. That was found by testing: `/keystatic/` redirected to the login but `/keystatic` returned 200.
+
+3. Policy: create a new policy named "Owner only", action Allow, rule Include, selector Emails, value the owner's email address.
+
+4. Leave the identity providers on "Accept all available identity providers" (one-time PIN). Application name `taggig`, session duration 24 hours. Click Create.
+
+5. Do not add a Workers destination. The first attempt included the `taggig` Worker ("A Worker's production and preview URLs"), and the whole site, including the public pages, then required login. It was removed. To close the workers.dev hostname instead, disable the workers.dev route and preview URLs on the Worker (Settings, then Domains & Routes).
+
+6. Verify from a terminal. Everything under the protected paths should answer with a 302 to `*.cloudflareaccess.com`, and the home page should answer 200:
+
+   ```sh
+   for p in "" keystatic keystatic/ private private/ api/keystatic/github/login; do
+     echo "/$p: $(curl -s -o /dev/null -w '%{http_code}' https://taggig.dahleo.se/$p)"
+   done
+   ```
+
+Status when this was written: the exact-path rows (`keystatic`, `private`) were added and Save was clicked, but the curl check above had not been run yet. Run it to confirm. The GitHub App client secret, `KEYSTATIC_SECRET`, the updated Client ID and slug in Cloudflare, and a rebuild were also still pending.
+
 ## Open Questions
 
-- What is the production domain?
+- Should the workers.dev route and preview URLs be disabled (so the admin and private posts are not reachable there)?
 
-- Is a git remote already planned (GitHub, etc.)?
+- Should the non-secret Keystatic variables be moved into `wrangler.jsonc` `vars`?
 
 - Any branding assets (logo, colors, fonts) ready, or should we keep the defaults for now?
 
